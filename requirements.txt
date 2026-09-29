@@ -1,0 +1,10 @@
+loguru~=0.6.0
+mysqlclient~=2.1.0
+python-dateutil~=2.8.2
+mysqlparse~=0.1.6
+pyparsing~=3.0.7
+PyYAML~=6.0
+canal-python~=0.4
+protobuf~=3.19.4
+clickhouse_driver~=0.2.3
+mysql-connector-python~=8.0.28

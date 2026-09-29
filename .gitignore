@@ -1,0 +1,8 @@
+.idea
+*/**/*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 本地配置含数据库凭据，禁止入库。请参考 mysynch.yaml.example 自行创建
+mysynch.yaml

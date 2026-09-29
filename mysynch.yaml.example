@@ -1,0 +1,62 @@
+# 配置模板。
+# 复制为 mysynch.yaml 后填入真实值：
+#   cp mysynch.yaml.example mysynch.yaml
+# 注意：mysynch.yaml 已被 .gitignore 忽略，切勿提交真实凭据到仓库。
+
+core:
+  debug: true # 为 true 时打印每条 SQL
+  insert_num: 1 # 攒够多少条事件触发一次写入，生产建议 20000
+  insert_interval: 1 # 距上次写入多少秒触发一次写入，生产建议 60
+  # 开启后会自动在 ClickHouse 建库 mysynch 并写入监控数据
+  monitoring: false
+
+source_db:
+  - db_type: mysql # 目前仅支持 mysql
+    alias: mysql_db # 必须唯一，需与入口传入的 alias 一致
+    server_id: 1
+    host: <mysql-host>
+    port: 3306
+    user: <mysql-user>
+    password: <mysql-password>
+    skip_dmls: # 全局跳过的 DML 类型，可填 delete / update
+    skip_delete_tables: # 跳过 delete 的表，格式 schema.table
+    skip_update_tables: # 跳过 update 的表，格式 schema.table
+    databases:
+      - database: staff
+        # 可选，默认 true；ClickHouse 中库不存在时是否自动建库（仅全量 ETL 路径生效）
+        auto_create: false
+        tables:
+          - table: sd_leave_staff_balance
+            # 可选，默认 false；true 时把 decimal 替换为 String，规避 ClickHouse issue #7690
+            skip_decimal: false
+            # 可选，默认 true（仅全量 ETL 路径生效）
+            auto_full_etl: false
+            # 可选，默认 MergeTree
+            clickhouse_engine: MergeTree # 支持 MergeTree / CollapsingMergeTree / VersionedCollapsingMergeTree / ReplacingMergeTree
+            # 可选，如 toYYYYMM(created_at)
+            partition_by:
+            # 可选，如 index_granularity=8192
+            engine_settings:
+            # CollapsingMergeTree / VersionedCollapsingMergeTree 需要，源库无需真实存在
+            sign_column: sign
+            # VersionedCollapsingMergeTree 需要、ReplacingMergeTree 可选；需真实存在，通常是 updated_at
+            version_column:
+            # 可选，目标表名；不配则与源表同名
+            target_table: sd_leave_staff_balance_history
+
+target_db:
+  database: staff
+
+canal:
+  host: <canal-host>
+  port: 11111
+  username: ''
+  password: ''
+  client_id: '1009'
+  destination: 'example2'
+  filter: 'staff.sd_leave_staff_balance'
+
+clickhouse:
+  host: <clickhouse-host>:9000 # 必须带端口，代码按 ":" 拆分
+  user: default
+  password: ''
